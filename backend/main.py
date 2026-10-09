@@ -1,3 +1,5 @@
+import os
+from tavily import TavilyClient
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -37,6 +39,7 @@ from pydantic import BaseModel, Field
 
 
 class WorkflowRequest(BaseModel):
+    query: str
     nodes: list[dict[str, Any]] = Field(default_factory=list)
     edges: list[dict[str, Any]] = Field(default_factory=list)
 
@@ -154,31 +157,6 @@ def get_workflows(
         "data": filtered,
     }
 
-
-@app.post("/api/optimize/{workflow_id}", response_model=FeedbackResponse)
-def optimize_existing(workflow_id: str):
-    for wf in workflows_db:
-        if wf["id"] == workflow_id:
-            wf["status"] = "re-optimized"
-            return FeedbackResponse(
-                status="success",
-                message="Workflow status updated successfully.",
-                data=wf,
-                timestamp=datetime.now().isoformat(),
-            )
-
-    raise HTTPException(status_code=404, detail="Workflow not found")
-
-# --- Real web search using Tavily ---
-import os
-from tavily import TavilyClient
-from pydantic import BaseModel, Field
-
-
-class SearchRequest(BaseModel):
-    query: str = Field(..., min_length=2)
-
-
 @app.post("/search")
 def search_web(request: SearchRequest):
     api_key = os.getenv("TAVILY_API_KEY")
@@ -186,11 +164,12 @@ def search_web(request: SearchRequest):
     if not api_key:
         raise HTTPException(
             status_code=500,
-            detail="Tavily API key is not configured on the server.",
+            detail="TAVILY_API_KEY is missing on the server.",
         )
 
     try:
         client = TavilyClient(api_key=api_key)
+
         response = client.search(
             query=request.query,
             max_results=5,
@@ -204,6 +183,7 @@ def search_web(request: SearchRequest):
                 "content": item.get("content", ""),
             }
             for item in response.get("results", [])
+            if item.get("url")
         ]
 
         return {
@@ -214,7 +194,8 @@ def search_web(request: SearchRequest):
         }
 
     except Exception as exc:
+        print("Tavily search error:", str(exc))
         raise HTTPException(
             status_code=502,
-            detail=f"Web search failed: {str(exc)}",
+            detail="Web search failed. Check the backend logs and API key.",
         )
