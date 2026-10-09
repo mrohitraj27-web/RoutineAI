@@ -2,7 +2,7 @@ const ROUTINEAI_API = "http://127.0.0.1:8000";
 
 async function checkRoutineAIBackend() {
     try {
-        const response = await fetch(`${ROUTINEAI_API}/health`);
+        const ROUTINEAI_API = "https://routineai-nth9.onrender.com";
 
         if (!response.ok) {
             throw new Error(`Health check failed: ${response.status}`);
@@ -82,7 +82,7 @@ async function optimizeWorkflow() {
         button.disabled = true;
         button.textContent = "Analyzing...";
 
-        const response = await fetch("http://127.0.0.1:8000/optimize", {
+        const response = await fetch("https://routineai-nth9.onrender.com/optimize", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(workflow)
@@ -95,7 +95,7 @@ async function optimizeWorkflow() {
         }
 
         console.log("Backend result:", result);
-        alert("Backend connected!\n" + JSON.stringify(result, null, 2));
+        alert("Backend connected! Optimization analysis completed.");
     } catch (error) {
         console.error(error);
         alert("Backend connection failed. Check that your Python server is running.");
