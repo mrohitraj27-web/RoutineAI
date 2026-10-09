@@ -1,3 +1,4 @@
+from pydantic import BaseModel, Field
 import os
 from tavily import TavilyClient
 from fastapi import FastAPI
@@ -156,7 +157,8 @@ def get_workflows(
         "count": len(filtered),
         "data": filtered,
     }
-
+class SearchRequest(BaseModel):
+    query: str
 @app.post("/search")
 def search_web(request: SearchRequest):
     api_key = os.getenv("TAVILY_API_KEY")
