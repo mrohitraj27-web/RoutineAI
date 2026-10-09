@@ -159,8 +159,9 @@ def get_workflows(
         "data": filtered,
     }
 class SearchRequest(BaseModel):
-    query: str
-@app.post("/search")
+    query: str = Field(..., min_length=1)
+    SearchRequest.model_rebuild()
+@app.post("/search", response_model=dict)
 def search_web(request: SearchRequest):
     api_key = os.getenv("TAVILY_API_KEY")
 
