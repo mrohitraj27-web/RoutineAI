@@ -780,17 +780,58 @@ function render(){
  </div><span>${t.after}/${t.before}</span></div>`).join("");
 }
 function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-document.getElementById("taskForm").addEventListener("submit",e=>{
+document.getElementById("taskForm").addEventListener("submit", async e => {
  e.preventDefault();
- const task=document.getElementById("task").value.trim();
- if(!task)return;
- const before=12,after=8;
- tasks.unshift({name:"Custom task",detail:task,before,after});
- tasks=tasks.slice(0,4);
- render();
- const r=document.getElementById("result");
- r.style.display="block";
- r.innerHTML="<strong>✓ Demo optimization complete</strong><br>Task: "+escapeHTML(task)+"<br>Baseline: 12 simulated tool calls<br>Optimized: 8 simulated tool calls<br>Reduction: 33%<br>Safety: Human review and task-equivalence checks are still required in a real system.";
+
+ const task = document.getElementById("task").value.trim();
+ if (!task) return;
+
+ const r = document.getElementById("result");
+ r.style.display = "block";
+ r.textContent = "Searching the web... Please wait.";
+
+ try {
+  const response = await fetch("https://routineai-nth9.onrender.com/search", {
+   method: "POST",
+   headers: { "Content-Type": "application/json" },
+   body: JSON.stringify({ query: task })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+   throw new Error(data.detail || "Search request failed");
+  }
+
+  let html = "<strong>✓ Real web search complete</strong><br>";
+  html += "<br><strong>Task:</strong> " + escapeHTML(task);
+
+  if (data.content) {
+   html += "<br><br>" + escapeHTML(data.content).replace(/\n/g, "<br>");
+  }
+
+  if (Array.isArray(data.results) && data.results.length) {
+   html += "<br><br><strong>Sources:</strong>";
+
+   data.results.forEach(item => {
+    html += "<br><br><strong>" + escapeHTML(item.title || "Search result") + "</strong>";
+
+    if (item.url && /^https?:\/\//i.test(item.url)) {
+     html += '<br><a href="' + escapeHTML(item.url) + '" target="_blank" rel="noopener noreferrer">Open source</a>';
+    }
+
+    if (item.content) {
+     html += "<br>" + escapeHTML(item.content);
+    }
+   });
+  }
+
+  r.innerHTML = html;
+
+ } catch (error) {
+  r.textContent = "Search failed: " + error.message +
+   ". Try again in a moment; the backend may be starting up.";
+ }
 });
 function showPage(name,button){
  document.querySelectorAll(".nav").forEach(n=>n.classList.remove("active"));
