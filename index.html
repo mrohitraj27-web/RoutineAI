@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoutineAI — Agent Optimizer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#0b0f18;color:#edf0f8}
+button,input{font:inherit}
+button{cursor:pointer}
+.app{display:flex;min-height:100vh}
+aside{width:235px;flex-shrink:0;background:#101520;border-right:1px solid #293142;padding:25px 16px;display:flex;flex-direction:column}
+.brand{font-size:23px;font-weight:bold;margin:5px 0 7px;color:#c1b5ff}
+.sub{font-size:10px;color:#8491a7;letter-spacing:2px;margin-bottom:35px}
+.label{font-size:10px;color:#748198;letter-spacing:1.5px;margin:10px 10px}
+.nav{display:block;width:100%;padding:13px;margin:3px 0;border:0;border-radius:8px;background:transparent;color:#a6b0c1;text-align:left}
+.nav:hover,.nav.active{background:#282344;color:#c4b7ff}
+.safe{margin-top:auto;border:1px solid #2b3748;background:#151d2a;padding:15px;border-radius:10px;font-size:12px;line-height:2;color:#a9b4c7}
+main{flex:1;min-width:0}
+header{height:65px;border-bottom:1px solid #293142;display:flex;align-items:center;justify-content:space-between;padding:0 30px;color:#a4afc2;font-size:12px}
+.live{color:#64d9aa}
+.content{padding:30px;max-width:1400px;margin:auto}
+.eyebrow{color:#a696ff;font-size:10px;letter-spacing:2px;margin-bottom:12px}
+h1{font-size:29px;margin-bottom:9px;letter-spacing:-1px}
+.desc{font-size:13px;color:#8f9cb1;line-height:1.7}
+.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:26px}
+.btn{background:#8b79f7;border:0;color:white;border-radius:7px;padding:12px 16px;font-size:12px;font-weight:bold}
+.btn:hover{background:#7665e8}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.card,.panel{background:#121824;border:1px solid #293244;border-radius:11px;padding:19px}
+.card .name{font-size:12px;color:#a0acc0}
+.value{font-size:30px;font-weight:bold;margin:20px 0 10px}
+.small{font-size:11px;color:#8b98ac}
+.green{color:#65d9ad}
+.purple{color:#ae9fff}
+.panel{margin-bottom:20px}
+.panel h2{font-size:16px;margin-bottom:8px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:20px}
+form label{display:block;font-size:12px;color:#b2bed0;margin-bottom:10px}
+.entry{display:flex;gap:10px}
+input[type=text]{min-width:0;flex:1;background:#0c121d;border:1px solid #343e50;color:white;padding:13px;border-radius:7px;outline:none}
+input[type=text]:focus{border-color:#8b79f7}
+.result{display:none;margin-top:18px;padding:16px;background:#18251f;border:1px solid #355647;border-radius:8px;color:#9fe4c4;font-size:13px;line-height:1.9}
+.barrow{display:grid;grid-template-columns:90px 1fr 30px;gap:12px;align-items:center;margin:18px 0;font-size:11px;color:#9eabc0}
+.bars{display:flex;gap:4px;height:12px}
+.bar{height:12px;border-radius:3px}
+.original{background:#596780}
+.optimized{background:#8978f7}
+.legend{font-size:10px;color:#9ca8bb;display:flex;gap:14px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+table{border-collapse:collapse;width:100%;font-size:12px;text-align:left}
+th{color:#8491a7;font-size:10px;font-weight:normal}
+th,td{padding:15px 10px;border-bottom:1px solid #293142}
+td{color:#b8c3d3}
+td:first-child{color:#eef0f8}
+footer{padding:8px 0;color:#718096;font-size:10px;display:flex;justify-content:space-between;gap:10px}
+.hidden{display:none!important}
+.mobile-head{display:none}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}aside{width:200px}.content{padding:22px}}
+@media(max-width:650px){aside{display:none}.content{padding:18px 12px}.cards{gap:8px}.card{padding:13px}.value{font-size:24px}header{padding:0 15px}.top{align-items:flex-start;flex-direction:column}.entry{flex-direction:column}.panel{padding:15px}.table-wrap{overflow-x:auto}table{min-width:580px}h1{font-size:25px}footer{flex-direction:column}}
+
+/* ===== WORKFLOW STUDIO: PREMIUM BUTTON DESIGN ===== */
+
+/* Make the workflow canvas look polished */
+.workflow-canvas {
+  padding: 24px !important;
+  border: 1px solid #303a50 !important;
+  border-radius: 16px !important;
+
+  background:
+    radial-gradient(ellipse at top, rgba(124, 92, 230, .13), transparent 65%),
+    #0b1120 !important;
+  overflow: hidden;
+}
+
+.workflow-graph {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px !important;
+}
+
+/* Replace ugly default browser buttons with cards */
+.workflow-graph .flow-node {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-sizing: border-box !important;
+  width: 145px !important;
+  min-height: 178px !important;
+  flex: 0 1 145px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  padding: 15px !important;
+  white-space: normal !important;
+  text-align: left !important;
+  font-family: inherit !important;
+  color: #edf1ff !important;
+  background: linear-gradient(150deg, #1a2436, #111827) !important;
+  border: 1px solid #35435b !important;
+  border-top: 3px solid #8c79f5 !important;
+  border-radius: 14px !important;
+  cursor: pointer !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .16) !important;
+  transition: transform .22s ease, border-color .22s ease,
+    box-shadow .22s ease, background .22s ease !important;
+}
+
+.workflow-graph .flow-node:hover {
+  transform: translateY(-5px) !important;
+  border-color: #9a8aff !important;
+  box-shadow: 0 10px 28px rgba(124, 92, 230, .2) !important;
+}
+
+.workflow-graph .flow-node.selected {
+  background: linear-gradient(145deg, #292449, #171a30) !important;
+  border-color: #a99aff !important;
+  box-shadow: 0 0 0 2px rgba(157, 137, 255, .2),
+    0 10px 25px rgba(110, 85, 230, .16) !important;
+}
+
+.workflow-graph .node-icon {
+  width: 38px !important;
+  height: 38px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 11px !important;
+  font-size: 20px !important;
+  background: #30284f !important;
+  color: #c0b4ff !important;
+}
+
+.workflow-graph .node-type {
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 1px !important;
+  color: #a9b5cc !important;
+}
+
+.workflow-graph .flow-node strong {
+  display: block !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  color: #f4f6ff !important;
+}
+
+.workflow-graph .flow-node small {
+  font-size: 10px !important;
+  line-height: 1.6 !important;
+  color: #a0aec3 !important;
+}
+
+.workflow-graph .node-status {
+  margin-top: auto !important;
+  font-size: 9px !important;
+  color: #7de0b8 !important;
+}
+
+/* Color-code node categories */
+.workflow-graph .request-node { border-top-color: #899bb8 !important; }
+.workflow-graph .reasoning-node { border-top-color: #a393ff !important; }
+.workflow-graph .search-node { border-top-color: #52bdff !important; }
+.workflow-graph .validation-node { border-top-color: #51dbac !important; }
+.workflow-graph .output-node { border-top-color: #64d9ca !important; }
+
+.workflow-graph .search-node .node-icon {
+  color: #76ceff !important;
+  background: #17364d !important;
+}
+
+.workflow-graph .validation-node .node-icon {
+  color: #71e6ba !important;
+  background: #17392f !important;
+}
+
+.workflow-graph .output-node .node-icon {
+  color: #70e0d0 !important;
+  background: #173a37 !important;
+}
+
+/* Potentially redundant step gets an amber warning style */
+.workflow-graph .duplicate-node {
+  background: linear-gradient(145deg, #302319, #1d1820) !important;
+  border: 1px dashed #bd874e !important;
+  border-top: 3px solid #f0ae65 !important;
+}
+
+.workflow-graph .duplicate-node .node-icon {
+  color: #ffc17f !important;
+  background: #4b3220 !important;
+}
+
+.workflow-graph .duplicate-node .node-type,
+.workflow-graph .duplicate-node .node-status {
+  color: #ffc17f !important;
+}
+
+.workflow-graph .duplicate-node.removed {
+  opacity: .35 !important;
+}
+
+/* Make the connecting arrows cleaner */
+.workflow-graph .flow-arrow {
+  flex: 0 0 15px !important;
+  display: grid !important;
+  place-items: center !important;
+  color: #9b8aff !important;
+  font-size: 23px !important;
+  font-weight: 700 !important;
+}
+
+/* Premium Reset and Optimize buttons */
+.workflow-actions .workflow-btn,
+.workflow-actions #optimizeWorkflowBtn {
+  appearance: none !important;
+  border-radius: 10px !important;
+  padding: 12px 17px !important;
+  min-height: 43px !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: transform .2s ease, box-shadow .2s ease,
+    background .2s ease !important;
+}
+
+.workflow-actions .workflow-btn {
+  color: #d5dcef !important;
+  background: #1a2436 !important;
+  border: 1px solid #3a4760 !important;
+}
+
+.workflow-actions .workflow-btn:hover {
+  background: #27334a !important;
+  transform: translateY(-2px);
+}
+
+.workflow-actions #optimizeWorkflowBtn {
+  color: #fff !important;
+  background: linear-gradient(135deg, #8c72f5, #6948df) !important;
+  border: 1px solid #a391ff !important;
+  box-shadow: 0 5px 18px rgba(124, 92, 230, .24) !important;
+}
+
+.workflow-actions #optimizeWorkflowBtn:hover {
+  transform: translateY(-2px) !important;
+  background: linear-gradient(135deg, #a08bff, #7959ed) !important;
+  box-shadow: 0 8px 24px rgba(124, 92, 230, .36) !important;
+}
+
+.workflow-actions button:focus-visible,
+.workflow-graph .flow-node:focus-visible {
+  outline: 2px solid #c1b5ff !important;
+  outline-offset: 4px !important;
+}
+
+/* Make the node inspector match the cards */
+.node-inspector {
+  padding: 19px !important;
+  border-radius: 13px !important;
+  border: 1px solid #343d55 !important;
+  background: linear-gradient(135deg, #171f30, #111725) !important;
+}
+
+.workflow-notice {
+  border-radius: 10px !important;
+  line-height: 1.8 !important;
+}
+
+/* Responsive layout */
+@media (max-width: 760px) {
+  .workflow-graph .flow-node {
+    width: 135px !important;
+    flex-basis: 135px !important;
+  }
+
+  .workflow-canvas {
+    padding: 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .workflow-graph {
+    flex-direction: column !important;
+  }
+
+  .workflow-graph .flow-node {
+    width: 100% !important;
+    max-width: 300px !important;
+    flex: 0 1 auto !important;
+    min-height: 150px !important;
+  }
+
+  .workflow-graph .flow-arrow {
+    transform: rotate(90deg);
+  }
+
+  .workflow-graph .flow-arrow.removed-arrow {
+    display: none !important;
+  }
+}
+
+/* ===== PREMIUM WORKFLOW STATISTICS ===== */
+
+.workflow-summary {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  margin: 22px 0 !important;
+}
+
+.workflow-summary > div {
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 20px 18px !important;
+  min-width: 0 !important;
+  border: 1px solid #303b52 !important;
+  border-radius: 14px !important;
+  background: linear-gradient(145deg, #1b2436, #111725) !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .16) !important;
+  transition: transform .22s ease, border-color .22s ease,
+    box-shadow .22s ease !important;
+}
+
+/* Colored top accent */
+.workflow-summary > div::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, #8e78ff, #5c8cff) !important;
+}
+
+/* Different colors for each metric */
+.workflow-summary > div:nth-child(2)::before {
+  background: linear-gradient(90deg, #45baff, #647dff) !important;
+}
+
+.workflow-summary > div:nth-child(3)::before {
+  background: linear-gradient(90deg, #ffb35f, #ff7f91) !important;
+}
+
+.workflow-summary > div:nth-child(4)::before {
+  background: linear-gradient(90deg, #42d9a2, #73e6ca) !important;
+}
+
+.workflow-summary > div:hover {
+  transform: translateY(-4px) !important;
+  border-color: #7567ba !important;
+  box-shadow: 0 12px 28px rgba(103, 81, 205, .15) !important;
+}
+
+/* Small, elegant uppercase labels */
+.workflow-summary > div > span {
+  display: block !important;
+  margin-bottom: 12px !important;
+  color: #a5b2c9 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.1px !important;
+  text-transform: uppercase !important;
+  line-height: 1.5 !important;
+}
+
+/* Large dashboard numbers */
+.workflow-summary > div > strong {
+  display: block !important;
+  color: #f2f3ff !important;
+  font-size: clamp(23px, 2.4vw, 31px) !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -1px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Give each number its own accent color */
+.workflow-summary > div:nth-child(1) > strong {
+  color: #b6a6ff !important;
+}
+
+.workflow-summary > div:nth-child(2) > strong {
+  color: #72caff !important;
+}
+
+.workflow-summary > div:nth-child(3) > strong {
+  color: #ffc17f !important;
+}
+
+.workflow-summary > div:nth-child(4) > strong,
+.workflow-summary > div > strong.purple {
+  color: #70e4b6 !important;
+}
+
+/* Execution graph title bar */
+.canvas-topline {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  margin-bottom: 24px !important;
+}
+
+.canvas-topline > span:first-child {
+  color: #e0e5f7 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 1.4px !important;
+}
+
+.canvas-topline > span:last-child {
+  padding: 7px 10px !important;
+  color: #b7a9ff !important;
+  background: #292342 !important;
+  border: 1px solid #4a3d78 !important;
+  border-radius: 7px !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: .7px !important;
+}
+
+/* Section heading */
+.workflow-eyebrow {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 2px !important;
+  color: #a99aff !important;
+  text-transform: uppercase !important;
+}
+
+.workflow-header h2 {
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.6px !important;
+  color: #f3f4ff !important;
+  margin-top: 5px !important;
+}
+
+.workflow-header .desc {
+  color: #a9b6cc !important;
+  line-height: 1.8 !important;
+}
+
+@media (max-width: 700px) {
+  .workflow-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .workflow-summary > div {
+    padding: 16px 14px !important;
+  }
+
+  .workflow-header h2 {
+    font-size: 21px !important;
+  }
+}
+
+/* ===== STYLISH ITALIC HEADINGS ===== */
+
+h1, h2, h3, h4 {
+  font-style: italic;
+  letter-spacing: -0.5px;
+}
+
+.workflow-header h2 {
+  font-size: 26px;
+  font-weight: 800;
+  font-style: italic;
+  color: #c4b5fd;
+  letter-spacing: -0.8px;
+}
+
+.workflow-eyebrow {
+  font-style: italic;
+  letter-spacing: 2px;
+}
+
+.workflow-summary > div > span {
+  font-style: italic;
+  letter-spacing: 1px;
+}
+
+.canvas-topline > span {
+  font-style: italic;
+}
+
+.node-inspector h3 {
+  font-style: italic;
+  color: #c4b5fd;
+}
+
+/* Main dashboard font */
+body {
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Distinctive main heading */
+.workflow-header h2 {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 27px;
+  font-weight: bold;
+  color: #c4b5fd;
+}
+
+/* Stylish section labels */
+.workflow-eyebrow {
+  font-family: "Trebuchet MS", sans-serif;
+  font-style: italic;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #a99aff;
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="brand">✳ RoutineAI</div>
+  <div class="sub">AUTONOMOUS AGENT OPTIMIZER</div>
+  <div class="label">WORKSPACE</div>
+  <button class="nav active" onclick="showPage('Overview',this)">▦ &nbsp; Overview</button>
+  <button class="nav" onclick="showPage('Workflows',this)">⌘ &nbsp; Workflows</button>
+  <button class="nav" onclick="showPage('Optimization',this)">ϟ &nbsp; Optimization</button>
+  <button class="nav" onclick="showPage('Safety & Accuracy',this)">♧ &nbsp; Safety & Accuracy</button>
+  <button class="nav" onclick="showPage('Settings',this)">⚙ &nbsp; Settings</button>
+  <div class="safe">🛡 Safety guardrails<br><span class="green">● Enabled</span><br><span>Preserve task requirements while reducing redundant operations.</span></div>
+</aside>
+<main>
+<header><span id="crumb">Workspace / Overview</span><span class="live">● SYSTEM READY &nbsp; <span style="color:#9ba7ba">DEMO MODE</span></span></header>
+<div class="content">
+<section id="overview">
+  <div class="top">
+    <div><div class="eyebrow">INTELLIGENT WORKFLOW MANAGEMENT</div><h1 id="heading">Agent performance overview</h1><p class="desc">Reduce redundant actions. Preserve accuracy. Optimize every workflow.</p></div>
+    <button class="btn" onclick="resetDemo()">↻ Reset demo</button>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="name">Tool calls saved</div><div class="value purple" id="saved">15</div><div class="small">calls avoided in sample</div></div>
+    <div class="card"><div class="name">Workflow efficiency</div><div class="value green" id="efficiency">34%</div><div class="small">fewer tool calls</div></div>
+    <div class="card"><div class="name">Tasks monitored</div><div class="value" id="count">3</div><div class="small">sample workflows</div></div>
+    <div class="card"><div class="name">Safety guardrails</div><div class="value green" style="font-size:23px" id="safetyStatus">Active</div><div class="small">policy monitoring</div></div>
+  </div>
+</section>
+
+<section id="lab" class="panel">
+  <div class="panel-head"><div><h2>⚡ Optimize an agent routine</h2><p class="desc">Enter a task to simulate an optimization workflow.</p></div></div>
+  <form id="taskForm">
+    <label for="task">Task description</label>
+    <div class="entry"><input id="task" type="text" placeholder="e.g. Research competitors and summarize findings..." required><button class="btn" type="submit">▶ Run optimizer</button></div>
+  </form>
+  <div id="result" class="result" role="status"></div>
+  <p class="small" style="margin-top:14px">🛡 Safety checks enabled &nbsp; · &nbsp; Demo results are simulated</p>
+</section>
+<!-- WORKFLOW STUDIO -->
+<section id="workflowStudio" class="panel workflow-studio">
+
+  <div class="panel-head workflow-header">
+    <div>
+      <div class="workflow-eyebrow">VISUAL WORKFLOW ENGINE</div>
+      <h2>Workflow Studio</h2>
+      <p class="desc">
+        Inspect execution steps, identify redundant operations,
+        and preview a safer optimized workflow.
+      </p>
+    </div>
+
+    <span class="workflow-badge">
+      <span class="workflow-live-dot"></span>
+      DEMO ENVIRONMENT
+    </span>
+  </div>
+
+  <div class="workflow-toolbar">
+    <div class="workflow-legend">
+      <span><i class="legend-node search-key"></i>Search</span>
+      <span><i class="legend-node reasoning-key"></i>Reasoning</span>
+      <span><i class="legend-node validation-key"></i>Validation</span>
+      <span><i class="legend-node duplicate-key"></i>Redundant</span>
+    </div>
+
+    <div class="workflow-actions">
+      <button class="workflow-btn" onclick="resetWorkflow()">
+        ↻ Reset
+      </button>
+      <button class="btn" id="optimizeWorkflowBtn"
+              onclick="optimizeWorkflow()">
+        ⚡ Optimize Workflow
+      </button>
+    </div>
+  </div>
+
+  <div class="workflow-summary">
+    <div>
+      <span>Workflow steps</span>
+      <strong id="flowStepCount">7</strong>
+    </div>
+    
+<div id="backendOptimizationResult" style="display:none; margin-top:20px; padding:18px; border:1px solid #355647; border-radius:12px; background:#101c25;">
+  <h3 style="margin-top:0;">Backend Optimization Results</h3>
+  <p id="backendOptimizationStatus"></p>
+  <pre id="backendOptimizationDetails" style="white-space:pre-wrap; overflow-wrap:anywhere; color:#b8c3d3;"></pre>
+</div>
+    <div>
+      <span>Tool calls</span>
+      <strong id="flowToolCount">4</strong>
+    </div>
+    <div>
+      <span>Redundant steps</span>
+      <strong id="flowDuplicateCount">1</strong>
+    </div>
+    <div>
+      <span>Workflow status</span>
+      <strong id="flowStatus" class="purple">Ready</strong>
+    </div>
+  </div>
+
+  <div class="workflow-canvas">
+    <div class="canvas-topline">
+      <span>EXECUTION GRAPH</span>
+      <span id="flowVersion">VERSION 01 · ORIGINAL</span>
+    </div>
+
+    <div id="workflowGraph" class="workflow-graph">
+
+      <button class="flow-node request-node"
+              data-node="request" onclick="selectFlowNode('request')">
+        <span class="node-icon">⌘</span>
+        <span class="node-type">INPUT</span>
+        <strong>User Request</strong>
+        <small>Receive task</small>
+        <span class="node-status">● Start</span>
+      </button>
+
+      <div class="flow-arrow"><span>→</span></div>
+
+      <button class="flow-node reasoning-node"
+              data-node="plan" onclick="selectFlowNode('plan')">
+        <span class="node-icon">◇</span>
+        <span class="node-type">REASONING</span>
+        <strong>Plan Task</strong>
+        <small>Identify required steps</small>
+        <span class="node-status">● Planned</span>
+      </button>
+
+      <div class="flow-arrow"><span>→</span></div>
+
+      <button class="flow-node search-node"
+              data-node="search1" onclick="selectFlowNode('search1')">
+        <span class="node-icon">⌕</span>
+        <span class="node-type">TOOL CALL</span>
+        <strong>Web Search A</strong>
+        <small>Retrieve information</small>
+        <span class="node-status">● Required</span>
+      </button>
+
+      <div class="flow-arrow"><span>→</span></div>
+
+      <button class="flow-node duplicate-node"
+              data-node="search2" onclick="selectFlowNode('search2')">
+        <span class="node-icon">⟳</span>
+        <span class="node-type">DUPLICATE CHECK</span>
+        <strong>Web Search B</strong>
+        <small>Overlapping query</small>
+        <span class="node-status">● Review</span>
+      </button>
+
+      <div class="flow-arrow"><span>→</span></div>
+
+      <button class="flow-node reasoning-node"
+              data-node="reason" onclick="selectFlowNode('reason')">
+        <span class="node-icon">⌘</span>
+        <span class="node-type">REASONING</span>
+        <strong>Analyze Results</strong>
+        <small>Combine evidence</small>
+        <span class="node-status">● Required</span>
+      </button>
+
+      <div class="flow-arrow"><span>→</span></div>
+
+      <button class="flow-node validation-node"
+              data-node="validate" onclick="selectFlowNode('validate')">
+        <span class="node-icon">✓</span>
+        <span class="node-type">SAFETY CHECK</span>
+        <strong>Validate Output</strong>
+        <small>Check requirements</small>
+        <span class="node-status">● Required</span>
+      </button>
+
+      <div class="flow-arrow"><span>→</span></div>
+
+      <button class="flow-node output-node"
+              data-node="output" onclick="selectFlowNode('output')">
+        <span class="node-icon">↗</span>
+        <span class="node-type">OUTPUT</span>
+        <strong>Final Response</strong>
+        <small>Return result</small>
+        <span class="node-status">● End</span>
+      </button>
+
+    </div>
+
+    <div class="graph-note">
+      <span class="live-dot"></span>
+      Select any node to inspect its role and optimization rules.
+    </div>
+  </div>
+
+  <div class="node-inspector" id="nodeInspector">
+    <div class="inspector-icon" id="inspectorIcon">⌘</div>
+
+    <div class="inspector-content">
+      <div class="small-label">NODE INSPECTOR</div>
+      <h3 id="inspectorTitle">User Request</h3>
+      <p id="inspectorDescription">
+        The entry point for the agent workflow.
+      </p>
+      <div class="inspector-meta">
+        <span id="inspectorType">INPUT</span>
+        <span id="inspectorRule">Required operation</span>
+      </div>
+    </div>
+
+
+    <span id="inspectorBadge" class="inspector-badge">
+      Required
+    </span>
+  </div>
+
+  <div id="workflowNotice" class="workflow-notice" role="status">
+    Ready to inspect the workflow. Optimization is a local demonstration,
+    not a real AI-agent execution.
+  </div>
+
+</section>
+
+<section id="chart" class="panel">
+  <div class="panel-head"><div><h2>Workflow efficiency</h2><p class="desc">Tool calls per workflow · lower is better</p></div><div class="legend"><span><i class="dot original"></i>Original</span><span><i class="dot optimized"></i>Optimized</span></div></div>
+  <div id="bars"></div>
+</section>
+
+<section id="workflows" class="panel">
+  <div class="panel-head"><div><h2>Recent workflows</h2><p class="desc">Compare baseline and optimized tool usage.</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>WORKFLOW</th><th>BASELINE</th><th>OPTIMIZED</th><th>SAVED</th><th>STATUS</th></tr></thead><tbody id="taskRows"></tbody></table></div>
+</section>
+
+<section id="otherPage" class="panel hidden"><h2 id="otherHeading"></h2><p class="desc" id="otherText"></p><div id="otherContent" style="margin-top:20px"></div></section>
+<footer><span>✳ RoutineAI · Workflow intelligence prototype</span><span>Frontend demo · No real agent calls are made</span></footer>
+</div>
+</main>
+</div>
+
+<script>
+let tasks=[
+ {name:"Product research",detail:"Compare laptops under ₹50,000",before:14,after:8},
+ {name:"Web research",detail:"Collect and summarize articles",before:18,after:11},
+ {name:"Data analysis",detail:"Analyze a sales dataset",before:12,after:10}
+];
+
+function render(){
+ const before=tasks.reduce((s,t)=>s+t.before,0);
+ const after=tasks.reduce((s,t)=>s+t.after,0);
+ document.getElementById("saved").textContent=before-after;
+ document.getElementById("efficiency").textContent=before?Math.round((before-after)/before*100)+"%":"0%";
+ document.getElementById("count").textContent=tasks.length;
+ document.getElementById("taskRows").innerHTML=tasks.map(t=>`
+ <tr><td>${escapeHTML(t.name)}<br><span class="small">${escapeHTML(t.detail)}</span></td>
+ <td>${t.before} calls</td><td>${t.after} calls</td>
+ <td class="green">${Math.round((t.before-t.after)/t.before*100)}%</td><td class="green">● Demo</td></tr>`).join("");
+ const max=Math.max(...tasks.map(t=>t.before),1);
+ document.getElementById("bars").innerHTML=tasks.map(t=>`
+ <div class="barrow"><span>${escapeHTML(t.name)}</span><div>
+ <div class="bars"><div class="bar original" style="width:${t.before/max*100}%"></div></div>
+ <div class="bars" style="margin-top:4px"><div class="bar optimized" style="width:${t.after/max*100}%"></div></div>
+ </div><span>${t.after}/${t.before}</span></div>`).join("");
+}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+document.getElementById("taskForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const task=document.getElementById("task").value.trim();
+ if(!task)return;
+ const before=12,after=8;
+ tasks.unshift({name:"Custom task",detail:task,before,after});
+ tasks=tasks.slice(0,4);
+ render();
+ const r=document.getElementById("result");
+ r.style.display="block";
+ r.innerHTML="<strong>✓ Demo optimization complete</strong><br>Task: "+escapeHTML(task)+"<br>Baseline: 12 simulated tool calls<br>Optimized: 8 simulated tool calls<br>Reduction: 33%<br>Safety: Human review and task-equivalence checks are still required in a real system.";
+});
+function showPage(name,button){
+ document.querySelectorAll(".nav").forEach(n=>n.classList.remove("active"));
+ if(button)button.classList.add("active");
+ document.getElementById("crumb").textContent="Workspace / "+name;
+ const mainPages=["Overview","Workflows","Optimization"];
+ const showMain=mainPages.includes(name);
+ ["overview","lab","chart","workflows"].forEach(id=>document.getElementById(id).classList.toggle("hidden",!showMain||(name==="Workflows"&&["overview","lab","chart"].includes(id))||(name==="Optimization"&&id==="overview")));
+ const other=document.getElementById("otherPage");
+ other.classList.toggle("hidden",showMain);
+ if(showMain){
+  document.getElementById("heading").textContent=name==="Overview"?"Agent performance overview":name;
+ }else{
+  document.getElementById("otherHeading").textContent=name;
+  if(name==="Safety & Accuracy"){
+   document.getElementById("otherText").textContent="Safety controls are a prototype. Real safety and accuracy must be measured by backend validation.";
+   document.getElementById("otherContent").innerHTML='<p class="green">● Safety policy: Enabled in demo</p><br><p>Task correctness: Not measured</p><br><p>High-risk actions: Require review</p>';
+  }else{
+   document.getElementById("otherText").textContent="Configure the demo workflow policies.";
+   document.getElementById("otherContent").innerHTML='<label>Minimum target savings</label><select id="target" style="margin:12px 0;padding:10px;background:#0c121d;color:white;border:1px solid #343e50;border-radius:6px"><option>10%</option><option selected>20%</option><option>30%</option><option>40%</option></select><br><label><input type="checkbox" id="safetyToggle" checked> Enable safety guardrails</label><p class="desc" style="margin-top:15px">These settings are illustrative and do not change a real optimization engine.</p>';
+   document.getElementById("safetyToggle").addEventListener("change",e=>{
+    document.getElementById("safetyStatus").textContent=e.target.checked?"Active":"Review";
+   });
+  }
+ }
+}
+function resetDemo(){
+ tasks=[
+ {name:"Product research",detail:"Compare laptops under ₹50,000",before:14,after:8},
+ {name:"Web research",detail:"Collect and summarize articles",before:18,after:11},
+ {name:"Data analysis",detail:"Analyze a sales dataset",before:12,after:10}
+ ];
+ document.getElementById("result").style.display="none";
+ render();
+}
+render();
+</script>
+</body>
+</html>
