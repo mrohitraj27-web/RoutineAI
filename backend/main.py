@@ -1,7 +1,8 @@
+from pydantic import ConfigDict
 from pydantic import BaseModel, Field
 import os
 from tavily import TavilyClient
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
